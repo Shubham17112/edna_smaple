@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Sea eDNA Analysis Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0c1445 0%, #1e3c72 25%, #2a5298 50%, #1e3c72 75%, #0c1445 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: -2px;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .hero h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00d4ff, #0099cc);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* Gene Input Area */
+        .gene-input-container {
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            background: rgba(0, 212, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .gene-input-container:focus-within {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .gene-textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .gene-textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .gene-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+
+        /* Web Interface Grid */
+        .interface-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .interface-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interface-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #059669);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .interface-card:hover::before {
+            opacity: 1;
+        }
+
+        .interface-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.15);
+        }
+
+        .interface-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .interface-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .interface-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #10b981;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            color: #10b981;
+            transform: translateX(5px);
+        }
+
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Charts Container */
+        .charts-section {
+            margin: 3rem 0;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #00d4ff;
+            text-align: center;
+        }
+
+        /* Hotspot Mapping */
+        .hotspot-section {
+            margin: 3rem 0;
+        }
+
+        .hotspot-map {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            height: 600px;
+            position: relative;
+            overflow: hidden;
+            background-image: url('download.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .hotspot-map::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+
+        .hotspot-overlay {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            text-align: left;
+            z-index: 3;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 1.5rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 350px;
+        }
+
+        .hotspot-marker {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #ff4444;
+            border: 3px solid white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            z-index: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.6);
+        }
+
+        .hotspot-marker:hover {
+            transform: scale(1.5);
+            box-shadow: 0 0 25px rgba(255, 68, 68, 0.8);
+        }
+
+        .hotspot-marker::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid rgba(255, 68, 68, 0.3);
+            border-radius: 50%;
+            animation: ripple 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .hotspot-info {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 4;
+            border: 1px solid #ff4444;
+        }
+
+        .hotspot-info.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .hotspot-legend {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 3;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        /* Results Section */
+        .results {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #00d4ff;
+            margin: 1rem 0;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            height: 8px;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #0099cc);
+            border-radius: 50px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+            @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .results {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .interface-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h2 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+
+        /* Status indicators */
+        .status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .status-ready {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-processing {
+            background: rgba(249, 115, 22, 0.2);
+            color: #f97316;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
+        .status-complete {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-water"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>DeepSea eDNA</h1>
+                    <p>SIH 2025 • MoES • CMLRE</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h2>AI-Powered Deep Sea Biodiversity Analysis</h2>
+            <p>Revolutionary eDNA sequencing platform for discovering and classifying unknown eukaryotic taxa in the deep ocean using advanced machine learning algorithms</p>
+        </section>
+
+        <!-- Dashboard -->
+        <section class="dashboard">
+            <!-- Gene Input Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-dna"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Gene Sequence Input</h3>
+                        <p class="card-subtitle">Enter eDNA sequences for analysis</p>
+                    </div>
+                </div>
+
+                <div class="gene-input-container">
+                    <label class="input-label">DNA/RNA Sequences (FASTA format):</label>
+                    <textarea
+                        class="gene-textarea"
+                        id="geneSequence"
+                        placeholder=">Sample_Sequence_1
+ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG
+TACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACG
+
+>Sample_Sequence_2
+GCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAG
+CGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATC
+
+Enter your gene sequences here..."
+                    ></textarea>
+                    <small style="color: rgba(255,255,255,0.6); margin-top: 0.5rem; display: block;">
+                        Supports FASTA, multi-FASTA, and raw sequence formats
+                    </small>
+                </div>
+
+                <div class="status status-ready">Ready for Input</div>
+            </div>
+
+            <!-- AI Analysis Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">AI Analysis Engine</h3>
+                        <p class="card-subtitle">Deep learning pipeline status</p>
+                    </div>
+                </div>
+
+                <div style="margin: 1rem 0;">
+                    <p><strong>Model:</strong> DeepSea-Classifier v2.1</p>
+                    <p><strong>Algorithm:</strong> Transformer + CNN Hybrid</p>
+                    <p><strong>Database Independence:</strong> 95.2%</p>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="analysisProgress" style="width: 0%"></div>
+                </div>
+
+                <div class="status status-ready">Standby</div>
+            </div>
+        </section>
+
+        <!-- Web User Interface -->
+        <section class="interface-grid">
+            <div class="interface-card" style="background: rgba(255,255,255,0.05); color: #10b981; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 32px 0 rgba(16,185,129,0.10);">
+                <div class="interface-header">
+                    <div class="interface-icon">
+                        <i class="fas fa-chart-scatter"></i>
+                    </div>
+                    <h3 class="interface-title">Web User Interface</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-tree"></i></div>
+                        <span>Interactive Taxonomic Trees</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-chart-scatter"></i></div>
+                        <span>Diversity Heatmaps &amp; Metrics</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-map"></i></div>
+                        <span>Geographic Distribution Maps</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fab fa-openai"></i></div>
+                        <span>Statistical &amp; NLP Species Summary Reports</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-map-pin"></i></div>
+                        <span>Biodiversity Hotspot Mapping</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-globe"></i></div>
+                        <span>Species Distribution Modeling</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Biodiversity Map Section -->
+        <section class="charts-section">
+            <h2 class="chart-title" style="color: #10b981;">Global Biodiversity Distribution</h2>
+            <div class="charts-grid">
+                <div class="chart-container" style="height: 420px;">
+                    <h3 style="color: #00d4ff; text-align: center; margin-bottom: 1rem;">Ocean Basin Biodiversity</h3>
+                    <canvas id="biodiversityMapChart"></canvas>
+                </div>
+                <div class="chart-container" style="height: 420px;">
+                    <h3 style="color: #00d4ff; text-align: center; margin-bottom: 1rem;">Species Composition</h3>
+                    <canvas id="diversityPieChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Abundance and Trends Analysis -->
+        <section class="charts-section">
+            <h2 class="chart-title">Temporal Analysis (1992 - 2025)</h2>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3 style="color: #00d4ff; text-align: center; margin-bottom: 1rem;">Species Abundance Over Time</h3>
+                    <canvas id="abundanceChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3 style="color: #00d4ff; text-align: center; margin-bottom: 1rem;">Species Richness Trends</h3>
+                    <canvas id="richnessBarChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Additional Analytics -->
+        <section class="charts-section">
+            <h2 class="chart-title" style="color: #fbbf24;">Environmental Correlations</h2>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3 style="color: #00d4ff; text-align: center; margin-bottom: 1rem;">Depth vs Diversity</h3>
+                    <canvas id="depthDiversityChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3 style="color: #00d4ff; text-align: center; margin-bottom: 1rem;">Temperature Impact</h3>
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Taxa Identified Section -->
+        <section class="results">
+            <div class="result-card">
+                <div class="metric-value">128</div>
+                <div>Taxa Identified</div>
+            </div>
+            <div class="result-card">
+                <div class="metric-value">23</div>
+                <div>Hotspots Detected</div>
+            </div>
+            <div class="result-card">
+                <div class="metric-value">7,500</div>
+                <div>Samples Analyzed</div>
+            </div>
+        </section>
+
+        <!-- Biodiversity Hotspot Mapping -->
+        <section class="hotspot-section">
+            <h2 class="chart-title" style="color: #ff4444;">Biodiversity Hotspot Mapping</h2>
+            <div class="hotspot-map" id="hotspotMap">
+                <div class="hotspot-overlay">
+                    <i class="fas fa-map-pin" style="font-size: 2rem; color: #ff4444; margin-bottom: 0.5rem;"></i>
+                    <h3 style="color: #fff; margin-bottom: 0.5rem; font-size: 1.2rem;">Global Marine Biodiversity Hotspots</h3>
+                    <p style="color: #ccc; font-size: 0.9rem; line-height: 1.4;">Click on the markers to explore detailed information about each biodiversity hotspot.</p>
+                    <div style="margin-top: 1rem; padding: 0.5rem; background: rgba(255,68,68,0.1); border-radius: 5px; border-left: 3px solid #ff4444;">
+                        <small style="color: #ff9999;">🔴 Active Monitoring Sites: 23</small>
+                    </div>
+                </div>
+
+                <!-- Interactive Hotspot Markers with detailed information -->
+                <div class="hotspot-marker" style="top: 25%; left: 15%;" data-info="great-barrier-reef"></div>
+                <div class="hotspot-marker" style="top: 45%; left: 25%;" data-info="coral-triangle"></div>
+                <div class="hotspot-marker" style="top: 35%; left: 55%;" data-info="red-sea"></div>
+                <div class="hotspot-marker" style="top: 60%; left: 70%;" data-info="madagascar"></div>
+                <div class="hotspot-marker" style="top: 40%; left: 80%;" data-info="philippines"></div>
+                <div class="hotspot-marker" style="top: 20%; left: 45%;" data-info="mediterranean"></div>
+                <div class="hotspot-marker" style="top: 70%; left: 35%;" data-info="benguela"></div>
+                <div class="hotspot-marker" style="top: 50%; left: 10%;" data-info="caribbean"></div>
+
+                <!-- Information tooltips -->
+                <div class="hotspot-info" id="great-barrier-reef">
+                    <h4 style="color: #ff4444; margin-bottom: 0.5rem;">Great Barrier Reef</h4>
+                    <p><strong>Species Count:</strong> 1,625 fish species</p>
+                    <p><strong>Threat Level:</strong> Critical</p>
+                    <p><strong>Conservation Status:</strong> UNESCO World Heritage</p>
+                </div>
+
+                <div class="hotspot-info" id="coral-triangle">
+                    <h4 style="color: #ff4444; margin-bottom: 0.5rem;">Coral Triangle</h4>
+                    <p><strong>Species Count:</strong> 2,228 reef fish species</p>
+                    <p><strong>Threat Level:</strong> High</p>
+                    <p><strong>Coverage:</strong> 6 million km²</p>
+                </div>
+
+                <div class="hotspot-info" id="red-sea">
+                    <h4 style="color: #ff4444; margin-bottom: 0.5rem;">Red Sea</h4>
+                    <p><strong>Species Count:</strong> 1,200+ fish species</p>
+                    <p><strong>Endemism:</strong> 20% endemic species</p>
+                    <p><strong>Unique Feature:</strong> High temperature adaptation</p>
+                </div>
+
+                <div class="hotspot-info" id="madagascar">
+                    <h4 style="color: #ff4444; margin-bottom: 0.5rem;">Madagascar Waters</h4>
+                    <p><strong>Species Count:</strong> 980 fish species</p>
+                    <p><strong>Endemism:</strong> 15% endemic species</p>
+                    <p><strong>Threat Level:</strong> Moderate</p>
+                </div>
+
+                <div class="hotspot-info" id="philippines">
+                    <h4 style="color: #ff4444; margin-bottom: 0.5rem;">Philippines Archipelago</h4>
+                    <p><strong>Species Count:</strong> 1,800+ fish species</p>
+                    <p><strong>Coral Cover:</strong> 25,000 km²</p>
+                    <p><strong>Threat Level:</strong> High</p>
+                </div>
+
+                <div class="hotspot-info" id="mediterranean">
+                    <h4 style="color: #ff4444; margin-bottom: 0.5rem;">Mediterranean Sea</h4>
+                    <p><strong>Species Count:</strong> 750 fish species</p>
+                    <p><strong>Endemism:</strong> 18% endemic species</p>
+                    <p><strong>Status:</strong> Overfished regions</p>
+                </div>
+
+                <div class="hotspot-info" id="benguela">
+                    <h4 style="color: #ff4444; margin-bottom: 0.5rem;">Benguela Current</h4>
+                    <p><strong>Species Count:</strong> 560 fish species</p>
+                    <p><strong>Productivity:</strong> High upwelling system</p>
+                    <p><strong>Commercial Value:</strong> Major fishery</p>
+                </div>
+
+                <div class="hotspot-info" id="caribbean">
+                    <h4 style="color: #ff4444; margin-bottom: 0.5rem;">Caribbean Sea</h4>
+                    <p><strong>Species Count:</strong> 1,400+ fish species</p>
+                    <p><strong>Coral Reefs:</strong> 26,000 km²</p>
+                    <p><strong>Threat Level:</strong> Critical</p>
+                </div>
+
+                <!-- Legend -->
+                <div class="hotspot-legend">
+                    <h4 style="color: #fff; margin-bottom: 0.5rem; font-size: 0.9rem;">Legend</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff4444;"></div>
+                        <span>Critical Hotspot</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #fbbf24;"></div>
+                        <span>High Priority</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span>Stable Region</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+        // Biodiversity Map (Ocean Basin Distribution)
+        const ctxMap = document.getElementById('biodiversityMapChart').getContext('2d');
+        new Chart(ctxMap, {
+            type: 'bubble',
+            data: {
+                datasets: [
+                    { label: 'Atlantic Ocean', data: [{x: 30, y: 65, r: 18}], backgroundColor: '#10b981' },
+                    { label: 'Indian Ocean', data: [{x: 65, y: 45, r: 14}], backgroundColor: '#00d4ff' },
+                    { label: 'Pacific Ocean', data: [{x: 85, y: 75, r: 25}], backgroundColor: '#ff4444' },
+                    { label: 'Arctic Ocean', data: [{x: 45, y: 25, r: 10}], backgroundColor: '#fbbf24' },
+                    { label: 'Southern Ocean', data: [{x: 75, y: 15, r: 12}], backgroundColor: '#6366f1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#fff', font: { size: 12 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.r + ' species';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { min: 0, max: 100, display: false },
+                    y: { min: 0, max: 100, display: false }
+                }
+            }
+        });
+
+        // Diversity Pie Chart
+        const ctxPie = document.getElementById('diversityPieChart').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fish (32%)', 'Mollusks (21%)', 'Crustaceans (18%)', 'Cnidarians (14%)', 'Others (15%)'],
+                datasets: [{
+                    data: [32, 21, 18, 14, 15],
+                    backgroundColor: ['#10b981', '#00d4ff', '#ff4444', '#fbbf24', '#6366f1'],
+                    borderColor: '#222',
+                    borderWidth: 2,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#fff', font: { size: 11 } },
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Abundance per Year Chart
+        const ctx = document.getElementById('abundanceChart').getContext('2d');
+        const years = Array.from({length: 2025-1992+1}, (_, i) => 1992 + i);
+        const abundance = years.map((y, i) => 5000 + Math.round(Math.sin(i/3)*2000 + Math.random()*1000 + i*50));
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'Total Abundance',
+                    data: abundance,
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0,212,255,0.2)',
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#fff', maxTicksLimit: 10 },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#fff' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Species Richness Bar Chart
+        const ctxBar = document.getElementById('richnessBarChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: years.filter((_, i) => i % 3 === 0),
+                datasets: [{
+                    label: 'Species Richness',
+                    data: years.filter((_, i) => i % 3 === 0).map((y, i) => 50 + Math.round(Math.cos(i/2)*20 + Math.random()*15 + i*2)),
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: '#10b981',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#fff' } } },
+                scales: {
+                    x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+                }
+            }
+        });
+
+        // Depth vs Diversity Scatter Plot
+        const ctxDepth = document.getElementById('depthDiversityChart').getContext('2d');
+        const depthData = Array.from({length: 50}, () => ({
+            x: Math.random() * 6000 + 200, // Depth in meters
+            y: Math.random() * 80 + 10      // Diversity index
+        }));
+        new Chart(ctxDepth, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Sampling Sites',
+                    data: depthData,
+                    backgroundColor: '#ff4444',
+                    borderColor: '#fff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#fff' } } },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Depth (m)', color: '#fff' },
+                        ticks: { color: '#fff' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Diversity Index', color: '#fff' },
+                        ticks: { color: '#fff' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    }
+                }
+            }
+        });
+
+        // Temperature Impact Line Chart
+        const ctxTemp = document.getElementById('temperatureChart').getContext('2d');
+        const tempRanges = ['0-2°C', '2-4°C', '4-6°C', '6-8°C', '8-10°C', '10-12°C'];
+        new Chart(ctxTemp, {
+            type: 'line',
+            data: {
+                labels: tempRanges,
+                datasets: [{
+                    label: 'Species Count',
+                    data: [45, 38, 52, 67, 43, 28],
+                    borderColor: '#fbbf24',
+                    backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                    pointBackgroundColor: '#fbbf24',
+                    pointBorderColor: '#fff',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#fff' } } },
+                scales: {
+                    x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+                }
+            }
+        });
+
+        // Hotspot Interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            const markers = document.querySelectorAll('.hotspot-marker');
+            const infos = document.querySelectorAll('.hotspot-info');
+
+            markers.forEach(marker => {
+                marker.addEventListener('click', function() {
+                    const infoId = this.getAttribute('data-info');
+                    const info = document.getElementById(infoId);
+
+                    // Hide all other info panels
+                    infos.forEach(i => i.classList.remove('active'));
+
+                    // Show the selected info panel
+                    if (info) {
+                        info.classList.add('active');
+
+                        // Position the info panel near the marker
+                        const rect = this.getBoundingClientRect();
+                        const container = document.getElementById('hotspotMap').getBoundingClientRect();
+
+                        info.style.left = (rect.left - container.left + 30) + 'px';
+                        info.style.top = (rect.top - container.top - 10) + 'px';
+
+                        // Auto-hide after 5 seconds
+                        setTimeout(() => {
+                            info.classList.remove('active');
+                        }, 5000);
+                    }
+                });
+
+                // Add hover effect
+                marker.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.3)';
+                    this.style.boxShadow = '0 0 30px rgba(255, 68, 68, 1)';
+                });
+
+                marker.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.boxShadow = '0 0 15px rgba(255, 68, 68, 0.6)';
+                });
+            });
+
+            // Close info panels when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.hotspot-marker') && !e.target.closest('.hotspot-info')) {
+                    infos.forEach(i => i.classList.remove('active'));
+                }
+            });
+        });
+        </script>
+    </div>
+</body>
+</html>
